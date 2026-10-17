@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Changed
+
+- `make check` and CI run the same checks as typst/packages (its bundler and
+  `typst-package-check` on the exact submission), and `make publish` refuses
+  to submit unless they pass.
+
 ## [1.0.0] - 2026-10-17
 
 ### Added

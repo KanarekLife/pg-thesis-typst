@@ -1,6 +1,6 @@
 #   make                build the template and the example into build/
 #   make test           compile the test documents
-#   make check          version consistency, all builds and typst-package-check
+#   make check          versions, builds, typst-package-check and Universe bundler
 #   make watch          rebuild the example on every change
 #   make install        install as @preview/pg-thesis for local `typst init`
 #   make thumbnail      regenerate thumbnail.png
@@ -27,7 +27,7 @@ SOURCES   := lib.typ src template examples typst.toml
 EPOCH     := $(shell git log -1 --format=%at -- $(SOURCES) 2>/dev/null)
 DOCS_FLAGS = $(if $(EPOCH),--creation-timestamp $(EPOCH))
 
-.PHONY: all docs publish template example test check check-version package-check bundle watch install thumbnail clean
+.PHONY: all docs publish template example test check check-version package-check universe-test bundle watch install thumbnail clean
 
 all: template example
 
@@ -66,16 +66,24 @@ bundle:
 	git ls-files -z | xargs -0 tar -c | tar -x -C $(BUILD)/bundle
 	cd $(BUILD)/bundle && rm -rf $(REPO_ONLY)
 
-# Lints exactly what gets submitted, plus Universe's thumbnail size rule.
+# typst/packages' "Lint" check, on exactly what gets submitted.
 package-check: bundle
 	$(CONTAINER) run --rm -v $(CURDIR)/$(BUILD)/bundle:/data:Z ghcr.io/typst/package-check:0.7.0 check
-	@size=$$(file thumbnail.png | grep -oE '[0-9]+ x [0-9]+' | tr -d ' ' | tr x ' '); \
-	set -- $$size; long=$$(( $$1 > $$2 ? $$1 : $$2 )); \
-	[ $$long -ge 1080 ] || { echo "thumbnail.png longest edge is $$long px; Universe requires >= 1080"; exit 1; }
 
-check: check-version all test package-check
+# Runs typst/packages' own bundler on the submission, like its "Test" check.
+universe-test: bundle
+	rm -rf $(BUILD)/universe
+	git clone --quiet --depth 1 --filter=blob:none --sparse https://github.com/typst/packages $(BUILD)/universe
+	git -C $(BUILD)/universe sparse-checkout set bundler
+	mkdir -p $(BUILD)/universe/packages/preview/$(NAME) $(BUILD)/cargo
+	cp -r $(BUILD)/bundle $(BUILD)/universe/packages/preview/$(NAME)/$(VERSION)
+	$(CONTAINER) run --rm -v $(CURDIR)/$(BUILD)/universe:/w:Z -v $(CURDIR)/$(BUILD)/cargo:/cargo:Z \
+		-e CARGO_TARGET_DIR=/cargo/target -e CARGO_HOME=/cargo/home -w /w docker.io/library/rust:1 \
+		sh -c 'cargo build --quiet --release --manifest-path bundler/Cargo.toml && /cargo/target/release/bundler'
 
-publish: check-version bundle
+check: check-version all test package-check universe-test
+
+publish: check
 	scripts/publish.sh $(NAME) $(VERSION) $(BUILD)/bundle
 
 watch: $(CACHE)/preview/$(NAME)/$(VERSION)

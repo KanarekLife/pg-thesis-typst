@@ -30,9 +30,15 @@ jobs:
           name: pdfs
           path: build/*.pdf
 
-  package-check:
-    name: typst-package-check
+  universe:
+    name: Universe checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: make package-check CONTAINER=docker
+      - uses: actions/cache@v5
+        with:
+          path: build/cargo
+          key: universe-bundler-${{ runner.os }}
+      # The same checks typst/packages runs on a submission: "Lint"
+      # (typst-package-check) and "Test" (its bundler).
+      - run: make package-check universe-test CONTAINER=docker
