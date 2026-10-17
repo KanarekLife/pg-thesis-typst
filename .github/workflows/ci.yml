@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build (Typst ${{ matrix.typst }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The minimum from typst.toml and the newest release.
+        typst: ["0.14.0", "latest"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: typst-community/setup-typst@v5
+        with:
+          typst-version: ${{ matrix.typst }}
+      - name: Install fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-liberation
+      - run: make check-version
+      - run: make all test
+      - uses: actions/upload-artifact@v7
+        if: matrix.typst == 'latest'
+        with:
+          name: pdfs
+          path: build/*.pdf
+
+  package-check:
+    name: typst-package-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: make package-check CONTAINER=docker

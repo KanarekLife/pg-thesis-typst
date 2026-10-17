@@ -1,0 +1,4 @@
+build/
+*.pdf
+!examples/*/pdf/*.pdf
+!docs/*.pdf

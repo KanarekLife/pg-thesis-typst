@@ -1,0 +1,49 @@
+# On a vX.Y.Z tag: run CI, create the GitHub release with the PDFs, and open
+# the pull request to typst/packages. The pull request needs the secret
+# PACKAGES_TOKEN (a token that can fork typst/packages and push to the fork,
+# e.g. classic with `public_repo`); without it, run `make publish` locally.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: typst-community/setup-typst@v5
+      - name: Install fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-liberation
+      - run: make check-version TAG=${{ github.ref_name }}
+      - run: make docs bundle
+      - name: Release notes
+        run: |
+          v=${GITHUB_REF_NAME#v}
+          awk -v v="$v" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md \
+            | grep -v '^\[.*\]: ' > "$RUNNER_TEMP/notes.md"
+      - uses: softprops/action-gh-release@v3
+        with:
+          body_path: ${{ runner.temp }}/notes.md
+          files: |
+            docs/template.pdf
+            docs/example.pdf
+      - name: Open pull request to typst/packages
+        env:
+          GH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::PACKAGES_TOKEN is not set; run 'make publish' locally to open the typst/packages pull request."
+            exit 0
+          fi
+          make publish
