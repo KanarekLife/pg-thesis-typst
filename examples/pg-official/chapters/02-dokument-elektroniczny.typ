@@ -1,4 +1,4 @@
-#import "@preview/pg-thesis:1.0.0": ang
+#import "@preview/pg-unofficial-thesis:1.0.1": ang
 #import "../figures/doc-formats.typ": doc-formats
 
 = Dokument elektroniczny <chap-DokumentElektroniczny>

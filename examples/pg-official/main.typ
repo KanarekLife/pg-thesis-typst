@@ -3,7 +3,7 @@
 //
 // Build from the repository root with `make example`.
 
-#import "@preview/pg-thesis:1.0.0": *
+#import "@preview/pg-unofficial-thesis:1.0.1": *
 
 #show: thesis.with(
   kind: "master",

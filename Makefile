@@ -2,7 +2,7 @@
 #   make test           compile the test documents
 #   make check          versions, builds, typst-package-check and Universe bundler
 #   make watch          rebuild the example on every change
-#   make install        install as @preview/pg-thesis for local `typst init`
+#   make install        install as @preview/pg-unofficial-thesis for local `typst init`
 #   make thumbnail      regenerate thumbnail.png
 #   make bundle         stage the package files in build/bundle/
 #   make docs           rebuild the PDFs in docs/ (CI does this on main)

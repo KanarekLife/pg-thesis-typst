@@ -3,9 +3,13 @@
 All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [1.0.1] - 2026-10-23
 
 ### Changed
+
+- Renamed the package from `pg-thesis` to `pg-unofficial-thesis`: Typst
+  Universe reserves the bare university abbreviation for official templates.
+  `pg-thesis` 1.0.0 was never published, so this is the first release.
 
 - `make check` and CI run the same checks as typst/packages (its bundler and
   `typst-package-check` on the exact submission), and `make publish` refuses
@@ -26,4 +30,5 @@ All notable changes to this project are documented here. The project follows
 - `written-by` for chapter authors in team theses and `ang` for English terms.
 - Starter template and a port of the official PG example thesis.
 
+[1.0.1]: https://github.com/KanarekLife/pg-thesis-typst/releases/tag/v1.0.1
 [1.0.0]: https://github.com/KanarekLife/pg-thesis-typst/releases/tag/v1.0.0
